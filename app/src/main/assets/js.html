@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>kson</title>
+
+
+</head>
+
+<body>
+<p>
+    <xmp id="show">
+    </xmp>
+</p>
+<p>
+    <xmp id="init">
+    </xmp>
+</p>
+<div align="center">
+    <p>
+        <input type="button" id="enter" value="获取用户信息" onclick="getUserInfo();"
+        />
+    </p>
+</div>
+<!--//点击按钮则调用callAndroid函数-->
+<button type="button" id="button1" onclick="callAndroid()">点击调用</button>
+</body>
+
+<script>
+
+   function callJS(){
+      alert("Android调用了JS的callJS方法");
+   }
+   function callAndroid(){
+        <!--// 由于对象映射，所以调用test对象等于调用Android映射的对象-->
+            formjs.hello("js调用了android中的hello方法");
+ }
+
+    function getUserInfo(){
+        window.WebViewJavascriptBridge.callHandler(
+            'getUserInfo',
+            {'info': '我是js，我已经成功调用java代码'},
+            function(responseData) {
+                document.getElementById("show").innerHTML = "repsonseData from java,\ndata = " + responseData;
+            }
+        )
+    }
+
+       //JS注册事件监听
+       function connectWebViewJavascriptBridge(callback) {
+            if (window.WebViewJavascriptBridge) {
+                callback(WebViewJavascriptBridge)
+            } else {
+                document.addEventListener(
+                    'WebViewJavascriptBridgeReady'
+                    , function() {
+                        callback(WebViewJavascriptBridge)
+                    },
+                    false
+                );
+            }
+        }
+ //注册回调函数，第一次连接时调用 初始化函数
+        connectWebViewJavascriptBridge(function(bridge) {
+            bridge.init(function(message, responseCallback) {
+                console.log('JS got a message', message);
+                var data = {
+                    'Javascript Responds': '测试中文!'
+                };
+
+                if (responseCallback) {
+                    console.log('JS responding with', data);
+                    responseCallback(data);
+                }
+            });
+//Android调用js方法：functionInJs方法名称需要保持一致 ，并返回给Android通知
+            bridge.registerHandler("functionInJs", function(data, responseCallback) {
+                document.getElementById("show").innerHTML = ("data from Java: = " + data);
+                if (responseCallback) {
+                    var responseData = "我是js，我已经被java调用";
+                    responseCallback(responseData);
+                }
+            });
+        })
+
+</script>
+
+</html>
